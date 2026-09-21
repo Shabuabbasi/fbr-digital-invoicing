@@ -69,7 +69,7 @@ export async function submitInvoiceToFbr(req: Request, invoiceId: string) {
     const errorCode = isFbrError ? err.code : "UNKNOWN_ERROR";
     const errorMessage = err instanceof Error ? err.message : "Unknown error submitting to FBR";
 
-    logger.error("FBR submission failed", { invoiceId: String(locked._id), requestId, errorCode });
+    logger.error("FBR submission failed", { invoiceId: String(locked._id), requestId, errorCode, errorMessage });
 
     submission.errorCode = errorCode;
     submission.errorMessage = errorMessage;
