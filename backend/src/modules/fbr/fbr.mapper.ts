@@ -50,7 +50,7 @@ export function buildFbrPayload(
     buyerProvince: invoice.buyerSnapshot.province,
     buyerAddress: invoice.buyerSnapshot.address,
     buyerRegistrationType: regType,
-    invoiceRefNo: "",
+    invoiceRefNo: invoice.invoiceNumber ?? "",
     ...(environment === "SANDBOX" ? { scenarioId } : {}),
     items: invoice.items.map((item) => {
       const valueSalesExcludingST = toDecimal(item.unitPriceMinor * item.quantity - item.discountMinor);

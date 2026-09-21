@@ -18,6 +18,12 @@ import { globalRateLimiter } from "./middleware/rateLimit";
 export function createApp() {
   const app = express();
 
+  // Trust the first proxy hop (Nginx) so express-rate-limit can correctly read the real
+  // client IP from X-Forwarded-For instead of throwing ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+  if (isProduction) {
+    app.set("trust proxy", 1);
+  }
+
   app.use(helmet());
   app.use(
     cors({
@@ -32,9 +38,12 @@ export function createApp() {
   app.use(morgan(isProduction ? "combined" : "dev"));
   app.use(globalRateLimiter);
 
-  app.get("/health", (_req, res) => {
+  // Health check available at both /health and /api/health (Nginx proxies /api/ prefix)
+  const healthHandler = (_req: express.Request, res: express.Response) => {
     res.status(200).json({ success: true, data: { status: "ok" } });
-  });
+  };
+  app.get("/health", healthHandler);
+  app.get("/api/health", healthHandler);
 
   app.use("/api/auth", authRouter);
   app.use("/api/company", companyRouter);
