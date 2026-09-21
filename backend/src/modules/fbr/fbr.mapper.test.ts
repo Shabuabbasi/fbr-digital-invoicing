@@ -5,8 +5,21 @@ import type { HydratedDocument } from "mongoose";
 function makeInvoice(overrides: Partial<Record<string, unknown>> = {}) {
   return {
     invoiceDate: new Date("2026-03-15T00:00:00.000Z"),
-    sellerSnapshot: { name: "Acme Ltd", ntn: "1234567", strn: "", address: "Karachi", province: "Sindh" },
-    buyerSnapshot: { name: "Buyer Co", ntn: "7654321", strn: "", cnic: "", address: "Lahore", province: "Punjab" },
+    sellerSnapshot: {
+      name: "Acme Ltd",
+      ntn: "1234567",
+      strn: "",
+      address: "Karachi",
+      province: "Sindh",
+    },
+    buyerSnapshot: {
+      name: "Buyer Co",
+      ntn: "7654321",
+      strn: "",
+      cnic: "",
+      address: "Lahore",
+      province: "Punjab",
+    },
     items: [
       {
         productId: "p1",
@@ -45,6 +58,7 @@ describe("buildFbrPayload", () => {
     expect(item.valueSalesExcludingST).toBe(3000); // 300000 minor -> 3000.00 rupees
     expect(item.salesTaxApplicable).toBe(540); // 54000 minor -> 540.00 rupees
     expect(item.totalValues).toBe(3540); // 354000 minor -> 3540.00 rupees
+    expect(item.extraTax).toBe("");
   });
 
   it("marks a registered buyer (has NTN) and includes scenarioId SN001 in sandbox", () => {
@@ -55,7 +69,14 @@ describe("buildFbrPayload", () => {
 
   it("marks an unregistered buyer (no NTN/STRN) and uses scenarioId SN002", () => {
     const invoice = makeInvoice({
-      buyerSnapshot: { name: "Walk-in", ntn: "", strn: "", cnic: "3520112345671", address: "Lahore", province: "Punjab" },
+      buyerSnapshot: {
+        name: "Walk-in",
+        ntn: "",
+        strn: "",
+        cnic: "3520112345671",
+        address: "Lahore",
+        province: "Punjab",
+      },
     });
     const payload = buildFbrPayload(invoice, "SANDBOX");
     expect(payload.buyerRegistrationType).toBe("Unregistered");
@@ -97,7 +118,14 @@ describe("buildFbrPayload", () => {
 
     const unregistered = buildFbrPayload(
       makeInvoice({
-        buyerSnapshot: { name: "Walk-in", ntn: "", strn: "", cnic: "3520112345671", address: "Lahore", province: "Punjab" },
+        buyerSnapshot: {
+          name: "Walk-in",
+          ntn: "",
+          strn: "",
+          cnic: "3520112345671",
+          address: "Lahore",
+          province: "Punjab",
+        },
       }),
       "SANDBOX",
       "SERVICES",

@@ -15,7 +15,7 @@ export interface FbrInvoiceItemPayload {
   fixedNotifiedValueOrRetailPrice: number;
   salesTaxApplicable: number;
   salesTaxWithheldAtSource: number;
-  extraTax: number;
+  extraTax: string;
   furtherTax: number;
   sroScheduleNo: string;
   fedPayable: number;
@@ -60,8 +60,10 @@ export interface FbrValidationResponse {
 
 export interface FbrPostInvoiceResponse {
   invoiceNumber?: string; // FBR-issued invoice number, present on success
-  dated: string;
-  validationResponse: FbrValidationResponse;
+  dated?: string;
+  validationResponse?: FbrValidationResponse;
+  error?: string;
+  message?: string;
 }
 
 export interface FbrSubmitResult {

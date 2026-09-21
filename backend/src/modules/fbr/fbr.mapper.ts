@@ -24,7 +24,10 @@ function toDecimal(minorUnits: number): number {
   return Math.round(minorUnits) / 100;
 }
 
-function buyerRegistrationType(ntn: string, strn: string): "Registered" | "Unregistered" {
+function buyerRegistrationType(
+  ntn: string,
+  strn: string,
+): "Registered" | "Unregistered" {
   return ntn || strn ? "Registered" : "Unregistered";
 }
 
@@ -33,10 +36,19 @@ export function buildFbrPayload(
   environment: "SANDBOX" | "PRODUCTION",
   companySaleType: "GOODS" | "SERVICES" = "GOODS",
 ): FbrInvoicePayload {
-  const regType = buyerRegistrationType(invoice.buyerSnapshot.ntn, invoice.buyerSnapshot.strn);
+  const regType = buyerRegistrationType(
+    invoice.buyerSnapshot.ntn,
+    invoice.buyerSnapshot.strn,
+  );
   const isServices = companySaleType === "SERVICES";
-  const scenarioId = isServices ? "SN019" : regType === "Registered" ? "SN001" : "SN002";
-  const itemSaleType = isServices ? "Services" : "Goods at Standard Rate (default)";
+  const scenarioId = isServices
+    ? "SN019"
+    : regType === "Registered"
+      ? "SN001"
+      : "SN002";
+  const itemSaleType = isServices
+    ? "Services"
+    : "Goods at Standard Rate (default)";
 
   return {
     invoiceType: "Sale Invoice",
@@ -53,7 +65,9 @@ export function buildFbrPayload(
     invoiceRefNo: invoice.invoiceNumber ?? "",
     ...(environment === "SANDBOX" ? { scenarioId } : {}),
     items: invoice.items.map((item) => {
-      const valueSalesExcludingST = toDecimal(item.unitPriceMinor * item.quantity - item.discountMinor);
+      const valueSalesExcludingST = toDecimal(
+        item.unitPriceMinor * item.quantity - item.discountMinor,
+      );
       return {
         hsCode: item.hsCode,
         productDescription: item.productName,
@@ -65,7 +79,7 @@ export function buildFbrPayload(
         fixedNotifiedValueOrRetailPrice: 0,
         salesTaxApplicable: toDecimal(item.taxMinor),
         salesTaxWithheldAtSource: 0,
-        extraTax: 0,
+        extraTax: "",
         furtherTax: 0,
         sroScheduleNo: "",
         fedPayable: 0,

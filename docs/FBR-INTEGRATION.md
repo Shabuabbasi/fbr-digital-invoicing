@@ -20,12 +20,12 @@ Every endpoint, field name, and response shape below comes from that document �
 
 ## Real endpoints (sandbox vs production selected by `FBR_ENVIRONMENT`)
 
-| Purpose | Sandbox | Production |
-|---|---|---|
-| Post invoice | `https://gw.fbr.gov.pk/di_data/v1/di/postinvoicedata_sb` | `https://gw.fbr.gov.pk/di_data/v1/di/postinvoicedata` |
+| Purpose                    | Sandbox                                                      | Production                                                |
+| -------------------------- | ------------------------------------------------------------ | --------------------------------------------------------- |
+| Post invoice               | `https://gw.fbr.gov.pk/di_data/v1/di/postinvoicedata_sb`     | `https://gw.fbr.gov.pk/di_data/v1/di/postinvoicedata`     |
 | Validate invoice (dry run) | `https://gw.fbr.gov.pk/di_data/v1/di/validateinvoicedata_sb` | `https://gw.fbr.gov.pk/di_data/v1/di/validateinvoicedata` |
 
-Per FBR's docs, routing between sandbox and production is actually determined by *which token* is used, not the URL — but we key off `FBR_ENVIRONMENT` too so the right URL is used from the start. `FBR_API_BASE_URL` in `.env` is optional — leave it blank and the app uses the table above automatically; only set it if FBR gives you a different gateway URL.
+Per FBR's docs, routing between sandbox and production is actually determined by _which token_ is used, not the URL — but we key off `FBR_ENVIRONMENT` too so the right URL is used from the start. `FBR_API_BASE_URL` in `.env` is optional — leave it blank and the app uses the table above automatically; only set it if FBR gives you a different gateway URL.
 
 Auth: `Authorization: Bearer <token>` header on every request (`fbr.client.ts`).
 
@@ -46,36 +46,39 @@ backend/src/modules/fbr/
 
 ## Payload mapping (Invoice → FBR's `postinvoicedata` schema)
 
-| Our field | FBR field | Notes |
-|---|---|---|
-| `invoiceDate` | `invoiceDate` | `"YYYY-MM-DD"` |
-| `sellerSnapshot.ntn` | `sellerNTNCNIC` | Company NTN — required |
-| `sellerSnapshot.name` | `sellerBusinessName` | |
-| `sellerSnapshot.province` | `sellerProvince` | Company province — required |
-| `sellerSnapshot.address` | `sellerAddress` | |
-| `buyerSnapshot.ntn` or `.cnic` | `buyerNTNCNIC` | NTN preferred, falls back to CNIC |
-| `buyerSnapshot.province` | `buyerProvince` | Customer province — required |
-| — (derived) | `buyerRegistrationType` | `"Registered"` if the customer has an NTN/STRN, else `"Unregistered"` |
-| `item.hsCode` | `hsCode` | Set on the Product — required per line item |
-| `item.productName` | `productDescription` | |
-| `item.taxRateBasisPoints` | `rate` | `1800` → `"18%"` |
-| `item.unit` | `uoM` | Passed through from Product.unit as-is |
-| `(unitPriceMinor*qty - discountMinor)/100` | `valueSalesExcludingST` | |
-| `item.taxMinor/100` | `salesTaxApplicable` | |
-| `item.lineTotalMinor/100` | `totalValues` | Includes tax |
+| Our field                                  | FBR field               | Notes                                                                 |
+| ------------------------------------------ | ----------------------- | --------------------------------------------------------------------- |
+| `invoiceDate`                              | `invoiceDate`           | `"YYYY-MM-DD"`                                                        |
+| `sellerSnapshot.ntn`                       | `sellerNTNCNIC`         | Company NTN — required                                                |
+| `sellerSnapshot.name`                      | `sellerBusinessName`    |                                                                       |
+| `sellerSnapshot.province`                  | `sellerProvince`        | Company province — required                                           |
+| `sellerSnapshot.address`                   | `sellerAddress`         |                                                                       |
+| `buyerSnapshot.ntn` or `.cnic`             | `buyerNTNCNIC`          | NTN preferred, falls back to CNIC                                     |
+| `buyerSnapshot.province`                   | `buyerProvince`         | Customer province — required                                          |
+| — (derived)                                | `buyerRegistrationType` | `"Registered"` if the customer has an NTN/STRN, else `"Unregistered"` |
+| `item.hsCode`                              | `hsCode`                | Set on the Product — required per line item                           |
+| `item.productName`                         | `productDescription`    |                                                                       |
+| `item.taxRateBasisPoints`                  | `rate`                  | `1800` → `"18%"`                                                      |
+| `item.unit`                                | `uoM`                   | Passed through from Product.unit as-is                                |
+| `(unitPriceMinor*qty - discountMinor)/100` | `valueSalesExcludingST` |                                                                       |
+| `item.taxMinor/100`                        | `salesTaxApplicable`    |                                                                       |
+| `item.lineTotalMinor/100`                  | `totalValues`           | Includes tax                                                          |
 
 **Documented MVP assumptions** (not in FBR's docs — our own choices, since these fields aren't in our data model yet):
+
 - `saleType` is hardcoded to `"Goods at Standard Rate (default)"`. Sector-specific sale types (steel, textile, telecom, ...) from FBR's scenario table aren't supported.
 - `scenarioId` (sandbox-only field) is derived as `SN001` (registered buyer) / `SN002` (unregistered buyer) — the two scenarios every business type is eligible for per FBR's "Applicable Scenarios based on Business Activity" table. Sector-specific scenarios (SN003–SN028) aren't selectable yet.
-- `fixedNotifiedValueOrRetailPrice`, `salesTaxWithheldAtSource`, `extraTax`, `furtherTax`, `fedPayable`, `sroScheduleNo`, `sroItemSerialNo` are sent as `0`/`""` — not tracked by this MVP.
+- `fixedNotifiedValueOrRetailPrice`, `salesTaxWithheldAtSource`, `furtherTax`, `fedPayable`, `sroScheduleNo`, `sroItemSerialNo` are sent as `0`/`""`; `extraTax` is sent as `""` per the IRIS payload example — not tracked by this MVP.
 - Only `invoiceType: "Sale Invoice"` is supported. Debit notes (which need `invoiceRefNo` pointing at the original invoice) aren't implemented — see spec §10's correction workflow, still future work.
 
 ## Response handling
 
 FBR's success response looks like:
+
 ```json
 { "invoiceNumber": "7000007DI1747119701593", "dated": "...", "validationResponse": { "statusCode": "00", "status": "Valid", "invoiceStatuses": [...] } }
 ```
+
 `fbr.client.ts` treats `validationResponse.statusCode === "00"` and `status === "Valid"` as success and stores `invoiceNumber` as `fbrReferenceNumber`. Anything else — including a 200 response with `statusCode: "01"` — is treated as a rejection, with FBR's own `error` message surfaced back to the user. HTTP `401` (bad/expired token) and `5xx` are mapped to distinct, retryable-vs-not error types.
 
 ## Idempotency / duplicate submission protection
@@ -102,6 +105,7 @@ FBR_API_TOKEN=            # required — sandbox token from IRIS, see "How to ge
 FBR_ENVIRONMENT=SANDBOX
 FBR_API_TIMEOUT_MS=15000
 ```
+
 `.env` is git-ignored; `.env.example` documents the keys. Credentials are never returned by any API response (`/api/company/fbr-settings` GET returns `isConfigured: boolean` only, not the token).
 
 ## Audit trail
