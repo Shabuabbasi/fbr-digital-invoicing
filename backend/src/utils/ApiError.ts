@@ -11,6 +11,12 @@ export class ApiError extends Error {
   static badRequest(message: string, code = "VALIDATION_ERROR") {
     return new ApiError(400, code, message);
   }
+  static badGateway(message: string, code = "BAD_GATEWAY") {
+    return new ApiError(502, code, message);
+  }
+  static gatewayTimeout(message: string, code = "GATEWAY_TIMEOUT") {
+    return new ApiError(504, code, message);
+  }
   static unauthorized(message = "Unauthorized", code = "UNAUTHORIZED") {
     return new ApiError(401, code, message);
   }

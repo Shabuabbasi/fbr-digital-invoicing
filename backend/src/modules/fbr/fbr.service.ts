@@ -98,6 +98,12 @@ export async function submitInvoiceToFbr(req: Request, invoiceId: string) {
     });
     await locked.save();
 
+    if (errorCode === "FBR_TIMEOUT") {
+      throw ApiError.gatewayTimeout(errorMessage, "FBR_TIMEOUT");
+    }
+    if (errorCode === "FBR_SERVER_ERROR") {
+      throw ApiError.badGateway(errorMessage, "FBR_SERVER_ERROR");
+    }
     throw ApiError.badRequest(errorMessage, "FBR_SUBMISSION_ERROR");
   }
 }
