@@ -81,7 +81,7 @@ export async function submitInvoice(
         firstItemError?.error ||
         body?.error ||
         body?.message ||
-        `FBR rejected the invoice (HTTP ${httpStatus})`;
+        `FBR rejected the invoice (HTTP ${httpStatus}): ${JSON.stringify(body)}`;
       throw new FbrRejectedError(errorMessage);
     }
 
