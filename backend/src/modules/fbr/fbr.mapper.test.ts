@@ -101,6 +101,23 @@ describe("buildFbrPayload", () => {
     expect(payload.buyerNTNCNIC).toBe("3520212345671");
   });
 
+  it("maps the customer display name to FBR's Islamabad province value", () => {
+    const invoice = makeInvoice({
+      buyerSnapshot: {
+        name: "Walk-in",
+        ntn: "",
+        strn: "",
+        cnic: "3520212345671",
+        address: "Islamabad",
+        province: "Islamabad Capital Territory",
+      },
+    });
+
+    const payload = buildFbrPayload(invoice, "SANDBOX");
+
+    expect(payload.buyerProvince).toBe("Islamabad");
+  });
+
   it("omits scenarioId in production (sandbox-only field per FBR spec)", () => {
     const payload = buildFbrPayload(makeInvoice(), "PRODUCTION");
     expect(payload.scenarioId).toBeUndefined();

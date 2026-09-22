@@ -28,6 +28,11 @@ function normalizeBuyerRegistrationNumber(value: string): string {
   return value.replace(/\D/g, "");
 }
 
+function normalizeFbrProvince(value: string): string {
+  const province = value.trim();
+  return province === "Islamabad Capital Territory" ? "Islamabad" : province;
+}
+
 function buyerRegistrationType(
   ntn: string,
   strn: string,
@@ -62,11 +67,11 @@ export function buildFbrPayload(
     invoiceDate: invoice.invoiceDate.toISOString().slice(0, 10),
     sellerNTNCNIC: invoice.sellerSnapshot.ntn,
     sellerBusinessName: invoice.sellerSnapshot.name,
-    sellerProvince: invoice.sellerSnapshot.province,
+    sellerProvince: normalizeFbrProvince(invoice.sellerSnapshot.province),
     sellerAddress: invoice.sellerSnapshot.address,
     buyerNTNCNIC: buyerRegistrationNumber,
     buyerBusinessName: invoice.buyerSnapshot.name,
-    buyerProvince: invoice.buyerSnapshot.province,
+    buyerProvince: normalizeFbrProvince(invoice.buyerSnapshot.province),
     buyerAddress: invoice.buyerSnapshot.address,
     buyerRegistrationType: regType,
     invoiceRefNo: invoice.invoiceNumber ?? "",
