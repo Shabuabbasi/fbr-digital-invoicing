@@ -84,6 +84,23 @@ describe("buildFbrPayload", () => {
     expect(payload.scenarioId).toBe("SN002");
   });
 
+  it("removes separators from a buyer CNIC before sending it to FBR", () => {
+    const invoice = makeInvoice({
+      buyerSnapshot: {
+        name: "Walk-in",
+        ntn: "",
+        strn: "",
+        cnic: "35202-1234567-1",
+        address: "Lahore",
+        province: "Punjab",
+      },
+    });
+
+    const payload = buildFbrPayload(invoice, "SANDBOX");
+
+    expect(payload.buyerNTNCNIC).toBe("3520212345671");
+  });
+
   it("omits scenarioId in production (sandbox-only field per FBR spec)", () => {
     const payload = buildFbrPayload(makeInvoice(), "PRODUCTION");
     expect(payload.scenarioId).toBeUndefined();

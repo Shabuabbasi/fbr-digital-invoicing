@@ -24,6 +24,10 @@ function toDecimal(minorUnits: number): number {
   return Math.round(minorUnits) / 100;
 }
 
+function normalizeBuyerRegistrationNumber(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
 function buyerRegistrationType(
   ntn: string,
   strn: string,
@@ -49,6 +53,9 @@ export function buildFbrPayload(
   const itemSaleType = isServices
     ? "Services"
     : "Goods at Standard Rate (default)";
+  const buyerRegistrationNumber = normalizeBuyerRegistrationNumber(
+    invoice.buyerSnapshot.ntn || invoice.buyerSnapshot.cnic,
+  );
 
   return {
     invoiceType: "Sale Invoice",
@@ -57,7 +64,7 @@ export function buildFbrPayload(
     sellerBusinessName: invoice.sellerSnapshot.name,
     sellerProvince: invoice.sellerSnapshot.province,
     sellerAddress: invoice.sellerSnapshot.address,
-    buyerNTNCNIC: invoice.buyerSnapshot.ntn || invoice.buyerSnapshot.cnic,
+    buyerNTNCNIC: buyerRegistrationNumber,
     buyerBusinessName: invoice.buyerSnapshot.name,
     buyerProvince: invoice.buyerSnapshot.province,
     buyerAddress: invoice.buyerSnapshot.address,
