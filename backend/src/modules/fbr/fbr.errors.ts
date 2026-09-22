@@ -3,6 +3,7 @@ export class FbrError extends Error {
     message: string,
     public code: string,
     public retryable: boolean,
+    public httpStatus?: number,
   ) {
     super(message);
     this.name = "FbrError";
@@ -31,7 +32,7 @@ export class FbrTimeoutError extends FbrError {
 }
 
 export class FbrRejectedError extends FbrError {
-  constructor(message: string) {
-    super(message, "FBR_REJECTED", false);
+  constructor(message: string, httpStatus?: number) {
+    super(message, "FBR_REJECTED", false, httpStatus);
   }
 }

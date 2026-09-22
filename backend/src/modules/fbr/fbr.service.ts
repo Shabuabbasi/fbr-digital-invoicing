@@ -28,13 +28,21 @@ export async function submitInvoiceToFbr(req: Request, invoiceId: string) {
     { new: true },
   );
   if (!locked) {
-    throw ApiError.conflict("This invoice is already being submitted to FBR", "FBR_SUBMISSION_IN_PROGRESS");
+    throw ApiError.conflict(
+      "This invoice is already being submitted to FBR",
+      "FBR_SUBMISSION_IN_PROGRESS",
+    );
   }
 
-  const attemptNumber = (await FbrSubmission.countDocuments({ invoiceId: locked._id })) + 1;
+  const attemptNumber =
+    (await FbrSubmission.countDocuments({ invoiceId: locked._id })) + 1;
   const requestId = uuidv4();
   const company = await Company.findById(locked.companyId);
-  const payload = buildFbrPayload(locked, env.fbr.environment, company?.fbrConfig?.saleType ?? "GOODS");
+  const payload = buildFbrPayload(
+    locked,
+    env.fbr.environment,
+    company?.fbrConfig?.saleType ?? "GOODS",
+  );
 
   const submission = await FbrSubmission.create({
     invoiceId: locked._id,
@@ -67,10 +75,17 @@ export async function submitInvoiceToFbr(req: Request, invoiceId: string) {
   } catch (err) {
     const isFbrError = err instanceof FbrError;
     const errorCode = isFbrError ? err.code : "UNKNOWN_ERROR";
-    const errorMessage = err instanceof Error ? err.message : "Unknown error submitting to FBR";
+    const errorMessage =
+      err instanceof Error ? err.message : "Unknown error submitting to FBR";
 
-    logger.error("FBR submission failed", { invoiceId: String(locked._id), requestId, errorCode, errorMessage });
+    logger.error("FBR submission failed", {
+      invoiceId: String(locked._id),
+      requestId,
+      errorCode,
+      errorMessage,
+    });
 
+    submission.httpStatus = isFbrError ? (err.httpStatus ?? null) : null;
     submission.errorCode = errorCode;
     submission.errorMessage = errorMessage;
     submission.respondedAt = new Date();

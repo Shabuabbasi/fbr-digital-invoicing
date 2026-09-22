@@ -45,11 +45,19 @@ export async function submitInvoice(
     });
 
     const httpStatus = response.status;
+    const rawBody = await response.text();
     let body: FbrPostInvoiceResponse | undefined;
-    try {
-      body = (await response.json()) as FbrPostInvoiceResponse;
-    } catch {
-      // Non-JSON body (e.g. a gateway error page) — fall through with body undefined.
+    if (rawBody.trim()) {
+      try {
+        body = JSON.parse(rawBody) as FbrPostInvoiceResponse;
+      } catch {
+        logger.error("FBR returned a non-JSON response", {
+          requestId,
+          httpStatus,
+          contentType: response.headers.get("content-type"),
+          responseBody: rawBody.slice(0, 2000),
+        });
+      }
     }
 
     if (httpStatus === 401) {
@@ -57,6 +65,7 @@ export async function submitInvoice(
         "FBR rejected the request: invalid or expired security token",
         "FBR_UNAUTHORIZED",
         false,
+        httpStatus,
       );
     }
     if (httpStatus >= 500) {
@@ -64,6 +73,7 @@ export async function submitInvoice(
         `FBR internal server error (HTTP ${httpStatus})`,
         "FBR_SERVER_ERROR",
         true,
+        httpStatus,
       );
     }
 
@@ -81,8 +91,9 @@ export async function submitInvoice(
         firstItemError?.error ||
         body?.error ||
         body?.message ||
-        `FBR rejected the invoice (HTTP ${httpStatus}): ${JSON.stringify(body)}`;
-      throw new FbrRejectedError(errorMessage);
+        rawBody.trim() ||
+        `FBR rejected the invoice (HTTP ${httpStatus})`;
+      throw new FbrRejectedError(errorMessage, httpStatus);
     }
 
     return {
