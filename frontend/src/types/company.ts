@@ -12,7 +12,7 @@ export interface Company {
   invoicePrefix: string;
   fbrConfig: {
     environment: "SANDBOX" | "PRODUCTION";
-    saleType: "GOODS" | "SERVICES";
+    saleType: "GOODS" | "SERVICES" | "SERVICES_FED_ST";
     isConfigured: boolean;
   };
 }
@@ -31,10 +31,10 @@ export type CompanyUpdateInput = Partial<
     | "businessType"
     | "invoicePrefix"
   >
-> & { fbrSaleType?: "GOODS" | "SERVICES" };
+> & { fbrSaleType?: "GOODS" | "SERVICES" | "SERVICES_FED_ST" };
 
 export interface FbrSettings {
   environment: "SANDBOX" | "PRODUCTION";
-  saleType: "GOODS" | "SERVICES";
+  saleType: "GOODS" | "SERVICES" | "SERVICES_FED_ST";
   isConfigured: boolean;
 }

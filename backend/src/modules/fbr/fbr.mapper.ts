@@ -61,21 +61,27 @@ function buyerRegistrationType(
 export function buildFbrPayload(
   invoice: HydratedDocument<InvoiceDocument>,
   environment: "SANDBOX" | "PRODUCTION",
-  companySaleType: "GOODS" | "SERVICES" = "GOODS",
+  companySaleType: "GOODS" | "SERVICES" | "SERVICES_FED_ST" = "GOODS",
 ): FbrInvoicePayload {
   const regType = buyerRegistrationType(
     invoice.buyerSnapshot.ntn,
     invoice.buyerSnapshot.strn,
   );
-  const isServices = companySaleType === "SERVICES";
-  const scenarioId = isServices
-    ? "SN019"
-    : regType === "Registered"
-      ? "SN001"
-      : "SN002";
-  const itemSaleType = isServices
-    ? "Services"
-    : "Goods at Standard Rate (default)";
+  
+  let scenarioId: string;
+  let itemSaleType: string;
+  
+  if (companySaleType === "SERVICES") {
+    scenarioId = "SN019";
+    itemSaleType = "Services";
+  } else if (companySaleType === "SERVICES_FED_ST") {
+    scenarioId = "SN018";
+    itemSaleType = "Services (FED in ST Mode)";
+  } else {
+    scenarioId = regType === "Registered" ? "SN001" : "SN002";
+    itemSaleType = "Goods at Standard Rate (default)";
+  }
+
   const buyerRegistrationNumber = normalizeBuyerRegistrationNumber(
     invoice.buyerSnapshot.ntn || invoice.buyerSnapshot.cnic,
   );

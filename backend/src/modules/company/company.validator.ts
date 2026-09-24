@@ -11,5 +11,5 @@ export const updateCompanySchema = z.object({
   strn: z.string().max(32).optional(),
   businessType: z.string().max(100).optional(),
   invoicePrefix: z.string().min(1).max(16).optional(),
-  fbrSaleType: z.enum(["GOODS", "SERVICES"]).optional(),
+  fbrSaleType: z.enum(["GOODS", "SERVICES", "SERVICES_FED_ST"]).optional(),
 });

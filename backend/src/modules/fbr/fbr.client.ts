@@ -50,6 +50,7 @@ export async function submitInvoice(
     if (rawBody.trim()) {
       try {
         body = JSON.parse(rawBody) as FbrPostInvoiceResponse;
+        logger.info("FBR Response", { requestId, httpStatus, response: body });
       } catch {
         logger.error("FBR returned a non-JSON response", {
           requestId,

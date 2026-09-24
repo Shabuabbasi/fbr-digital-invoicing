@@ -22,7 +22,7 @@ const companySchema = new Schema(
       // Activity"). GOODS -> SN001/SN002, SERVICES -> SN019 (SN018 reserved for FED-in-ST-mode
       // services, not modeled by this MVP). Credentials/tokens are never stored on this
       // document — they live only in server environment variables.
-      saleType: { type: String, enum: ["GOODS", "SERVICES"], default: "GOODS" },
+      saleType: { type: String, enum: ["GOODS", "SERVICES", "SERVICES_FED_ST"], default: "GOODS" },
     },
   },
   { timestamps: true },

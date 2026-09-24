@@ -28,7 +28,7 @@ export function CompanySettings() {
     strn: "",
     businessType: "",
     invoicePrefix: "",
-    fbrSaleType: "GOODS" as "GOODS" | "SERVICES",
+    fbrSaleType: "GOODS" as "GOODS" | "SERVICES" | "SERVICES_FED_ST",
   });
 
   useEffect(() => {
@@ -118,11 +118,12 @@ export function CompanySettings() {
               label="FBR Sale Type"
               value={form.fbrSaleType}
               onChange={(e) =>
-                setForm((prev) => ({ ...prev, fbrSaleType: e.target.value as "GOODS" | "SERVICES" }))
+                setForm((prev) => ({ ...prev, fbrSaleType: e.target.value as "GOODS" | "SERVICES" | "SERVICES_FED_ST" }))
               }
             >
               <option value="GOODS">Goods (SN001 / SN002)</option>
               <option value="SERVICES">Services (SN019)</option>
+              <option value="SERVICES_FED_ST">Services FED in ST Mode (SN018)</option>
             </Select>
             <p className="-mt-2 text-xs text-gray-500 dark:text-gray-400">
               Match this to the Business Nature/Sector you selected when registering on IRIS — it

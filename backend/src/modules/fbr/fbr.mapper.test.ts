@@ -166,4 +166,10 @@ describe("buildFbrPayload", () => {
     );
     expect(unregistered.scenarioId).toBe("SN019");
   });
+
+  it("uses scenarioId SN018 and saleType 'Services (FED in ST Mode)' for a SERVICES_FED_ST company", () => {
+    const payload = buildFbrPayload(makeInvoice(), "SANDBOX", "SERVICES_FED_ST");
+    expect(payload.scenarioId).toBe("SN018");
+    expect(payload.items[0].saleType).toBe("Services (FED in ST Mode)");
+  });
 });
