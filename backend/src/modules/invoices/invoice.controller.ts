@@ -34,6 +34,11 @@ export const finalize = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json({ success: true, data: invoice });
 });
 
+export const resetToDraft = asyncHandler(async (req: Request, res: Response) => {
+  const invoice = await invoiceService.resetInvoiceToDraft(req, String(req.params.id));
+  res.status(200).json({ success: true, data: invoice });
+});
+
 export const downloadPdf = asyncHandler(async (req: Request, res: Response) => {
   const invoice = await invoiceService.getInvoiceById(req, String(req.params.id));
   streamInvoicePdf(invoice, res);

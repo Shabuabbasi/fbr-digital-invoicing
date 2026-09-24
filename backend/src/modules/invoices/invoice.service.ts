@@ -134,6 +134,21 @@ export async function createInvoice(req: Request, input: InvoiceInput) {
   }
 }
 
+export async function resetInvoiceToDraft(req: Request, id: string) {
+  const invoice = await Invoice.findOne(withTenant(req, { _id: id }));
+  if (!invoice) throw ApiError.notFound("Invoice not found");
+  if (invoice.status !== "FAILED") {
+    throw ApiError.conflict(
+      "Only FAILED invoices can be reset to draft",
+      "INVOICE_NOT_FAILED",
+    );
+  }
+
+  invoice.set({ status: "DRAFT", fbrStatus: "NOT_SUBMITTED", fbrReferenceNumber: null });
+  await invoice.save();
+  return invoice;
+}
+
 export async function updateInvoice(req: Request, id: string, input: InvoiceInput) {
   const invoice = await Invoice.findOne(withTenant(req, { _id: id }));
   if (!invoice) throw ApiError.notFound("Invoice not found");

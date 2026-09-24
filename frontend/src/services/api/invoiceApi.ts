@@ -49,6 +49,12 @@ export const invoiceApi = {
     return res.data.data;
   },
 
+  async resetToDraft(id: string): Promise<Invoice> {
+    const res = await http.post<ApiResponse<Invoice>>(`/invoices/${id}/reset-to-draft`);
+    if (!res.data.success) throw new Error(res.data.message);
+    return res.data.data;
+  },
+
   async downloadPdf(id: string, invoiceNumber: string): Promise<void> {
     const res = await http.get(`/invoices/${id}/pdf`, { responseType: "blob" });
     const url = URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));

@@ -87,6 +87,20 @@ export function InvoiceDetail() {
     }
   }
 
+  async function handleResetToDraft() {
+    if (!id) return;
+    setIsBusy(true);
+    try {
+      const updated = await invoiceApi.resetToDraft(id);
+      setInvoice(updated);
+      show("Invoice reset to Draft — you can now edit and resubmit", "success");
+    } catch (err) {
+      show(extractErrorMessage(err), "error");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
   if (error) return <ErrorState message={error} />;
   if (!invoice) return <LoadingState />;
 
@@ -136,9 +150,16 @@ export function InvoiceDetail() {
             )}
             {(invoice.status === "READY_FOR_SUBMISSION" ||
               invoice.status === "FAILED") && (
-              <Button onClick={handleSubmitToFbr} isLoading={isBusy}>
-                Submit to FBR
-              </Button>
+              <>
+                {invoice.status === "FAILED" && (
+                  <Button variant="secondary" onClick={handleResetToDraft} isLoading={isBusy}>
+                    Reset to Draft
+                  </Button>
+                )}
+                <Button onClick={handleSubmitToFbr} isLoading={isBusy}>
+                  Submit to FBR
+                </Button>
+              </>
             )}
           </div>
         }

@@ -13,6 +13,7 @@ invoiceRouter.get("/:id", invoiceController.getById);
 invoiceRouter.post("/", invoiceController.create);
 invoiceRouter.patch("/:id", invoiceController.update);
 invoiceRouter.post("/:id/finalize", invoiceController.finalize);
+invoiceRouter.post("/:id/reset-to-draft", invoiceController.resetToDraft);
 invoiceRouter.post("/:id/submit-fbr", fbrController.submitToFbr);
 invoiceRouter.get("/:id/fbr-status", fbrController.getInvoiceFbrStatus);
 invoiceRouter.get("/:id/pdf", invoiceController.downloadPdf);
