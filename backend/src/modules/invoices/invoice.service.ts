@@ -156,12 +156,24 @@ export async function updateInvoice(req: Request, id: string, input: InvoiceInpu
     throw ApiError.conflict("Only draft invoices can be edited", "INVOICE_NOT_EDITABLE");
   }
 
+  const company = await Company.findById(req.user!.companyId);
+  if (!company) throw ApiError.notFound("Company not found");
+
   const customer = await resolveCustomer(req, input.customerId);
   const resolvedItems = await resolveLineItems(req, input.items);
   const calculated = calculateInvoice(resolvedItems);
 
   invoice.set({
     customerId: customer._id,
+    // Refresh sellerSnapshot so that any company data changes (e.g. province fix)
+    // are picked up immediately without having to create a new invoice.
+    sellerSnapshot: {
+      name: company.name,
+      ntn: company.ntn,
+      strn: company.strn,
+      address: company.address,
+      province: company.province,
+    },
     buyerSnapshot: {
       name: customer.name,
       ntn: customer.ntn,
