@@ -28,9 +28,27 @@ function normalizeBuyerRegistrationNumber(value: string): string {
   return value.replace(/\D/g, "");
 }
 
+// FBR accepts only these exact province strings per the PRAL DI API reference:
+// Punjab, Sindh, KPK, Balochistan, Islamabad, AJK, GB, FATA
+// This map normalizes common aliases/typos that users or legacy data might have stored.
+const PROVINCE_ALIAS_MAP: Record<string, string> = {
+  "islamabad capital territory": "Islamabad",
+  "ict": "Islamabad",
+  "federal capital": "Islamabad",
+  "khyber pakhtunkhwa": "KPK",
+  "khyber-pakhtunkhwa": "KPK",
+  "kp": "KPK",
+  "nwfp": "KPK",
+  "azad kashmir": "AJK",
+  "azad jammu and kashmir": "AJK",
+  "azad jammu & kashmir": "AJK",
+  "gilgit baltistan": "GB",
+  "gilgit-baltistan": "GB",
+};
+
 function normalizeFbrProvince(value: string): string {
-  const province = value.trim();
-  return province === "Islamabad Capital Territory" ? "Islamabad" : province;
+  const trimmed = value.trim();
+  return PROVINCE_ALIAS_MAP[trimmed.toLowerCase()] ?? trimmed;
 }
 
 function buyerRegistrationType(

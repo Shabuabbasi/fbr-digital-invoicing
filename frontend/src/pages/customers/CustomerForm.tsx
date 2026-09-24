@@ -84,7 +84,17 @@ export function CustomerForm({
           <Input id="address" label="Address" value={address} onChange={(e) => setAddress(e.target.value)} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input id="city" label="City" value={city} onChange={(e) => setCity(e.target.value)} />
-            <Input id="province" label="Province" value={province} onChange={(e) => setProvince(e.target.value)} />
+            <Select id="province" label="Province" value={province} onChange={(e) => setProvince(e.target.value)}>
+              <option value="">-- Select Province --</option>
+              <option value="Punjab">Punjab</option>
+              <option value="Sindh">Sindh</option>
+              <option value="KPK">Khyber Pakhtunkhwa (KPK)</option>
+              <option value="Balochistan">Balochistan</option>
+              <option value="Islamabad">Islamabad Capital Territory</option>
+              <option value="AJK">Azad Jammu &amp; Kashmir (AJK)</option>
+              <option value="GB">Gilgit-Baltistan (GB)</option>
+              <option value="FATA">FATA</option>
+            </Select>
           </div>
           {error && <p className="text-sm text-error-600 dark:text-error-400">{error}</p>}
           {!readOnly && (
