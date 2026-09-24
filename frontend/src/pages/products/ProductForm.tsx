@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Input } from "../../components/Input";
+import { Select } from "../../components/Select";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import type { Product, ProductInput } from "../../types/product";
@@ -16,7 +17,7 @@ export function ProductForm({
   const [name, setName] = useState(initial?.name ?? "");
   const [sku, setSku] = useState(initial?.sku ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [unit, setUnit] = useState(initial?.unit ?? "pcs");
+  const [unit, setUnit] = useState(initial?.unit ?? "Pcs");
   const [priceRupees, setPriceRupees] = useState(initial ? (initial.salePriceMinor / 100).toString() : "");
   const [taxRatePercent, setTaxRatePercent] = useState(initial ? (initial.taxRateBasisPoints / 100).toString() : "0");
   const [hsCode, setHsCode] = useState(initial?.hsCode ?? "");
@@ -66,7 +67,41 @@ export function ProductForm({
           </p>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Input id="unit" label="Unit" required value={unit} onChange={(e) => setUnit(e.target.value)} />
+          <Select id="unit" label="Unit" required value={unit} onChange={(e) => setUnit(e.target.value)}>
+            <option value="">-- Select Unit --</option>
+            <option value="Pcs">Pcs</option>
+            <option value="Numbers, pieces, units">Numbers, pieces, units</option>
+            <option value="KG">KG</option>
+            <option value="Kilogram">Kilogram</option>
+            <option value="Gram">Gram</option>
+            <option value="Liter">Liter</option>
+            <option value="Meter">Meter</option>
+            <option value="Dozen">Dozen</option>
+            <option value="Packs">Packs</option>
+            <option value="Pair">Pair</option>
+            <option value="Square Foot">Square Foot</option>
+            <option value="Square Metre">Square Metre</option>
+            <option value="Cubic Metre">Cubic Metre</option>
+            <option value="Foot">Foot</option>
+            <option value="MT">MT</option>
+            <option value="Bag">Bag</option>
+            <option value="SET">SET</option>
+            <option value="NO">NO</option>
+            <option value="40KG">40KG</option>
+            <option value="SqY">SqY</option>
+            <option value="Carat">Carat</option>
+            <option value="Gallon">Gallon</option>
+            <option value="Pound">Pound</option>
+            <option value="Timber Logs">Timber Logs</option>
+            <option value="Thousand Unit">Thousand Unit</option>
+            <option value="Mega Watt">Mega Watt</option>
+            <option value="KWH">KWH</option>
+            <option value="1000 kWh">1000 kWh</option>
+            <option value="MMBTU">MMBTU</option>
+            <option value="Barrels">Barrels</option>
+            <option value="Bill of lading">Bill of lading</option>
+            <option value="Others">Others</option>
+          </Select>
           <Input
             id="price"
             label="Sale Price (PKR)"
