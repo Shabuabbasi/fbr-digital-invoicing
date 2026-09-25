@@ -90,8 +90,24 @@ FBR's success response looks like:
 ## Timeout, retry, error handling
 
 - `fbr.client` calls use a configurable timeout (`FBR_API_TIMEOUT_MS`, default 15000ms), aborted via `AbortController`.
-- On timeout or 5xx from FBR: mark `FAILED`, store the error, allow manual retry via `POST /api/invoices/:id/submit-fbr` again (new `FbrSubmission` attempt, `attemptNumber` incremented). No automatic silent retries that could double-submit.
-- On a rejection from FBR (invalid payload, bad token, etc.): mark `FAILED`, surface FBR's own error message to the user so they can correct the invoice or product data.
+- **Outcome unknown** — timeout, network error/dropped connection, any 5xx, or a 2xx without a `validationResponse`: FBR may have recorded the invoice, and the DI API (spec v1.12) has **no endpoint to look up an invoice's status**. The invoice is marked `status=RECONCILIATION_REQUIRED` / `fbrStatus=UNKNOWN` (API error code `FBR_OUTCOME_UNKNOWN`) and **cannot be resubmitted or reset to draft**. Never retried automatically.
+- **Definite failure** — explicit FBR rejection (`statusCode: "01"`), HTTP 401, other 4xx, or token not configured: mark `FAILED`, surface FBR's own error message, allow manual retry via `POST /api/invoices/:id/submit-fbr` (new `FbrSubmission` attempt, `attemptNumber` incremented) or reset to draft.
+- A database error *after* FBR returned success is never recorded as an FBR failure; the FBR invoice number is logged first, and the invoice is left for stale recovery (below).
+
+### Reconciling an invoice with an unknown outcome (ADMIN only)
+
+1. Check in the IRIS portal whether FBR has the invoice.
+2. Record the result — no FBR call is made:
+   - FBR has it: `POST /api/invoices/:id/fbr-reconcile` `{ "outcome": "ACCEPTED_BY_FBR", "fbrReferenceNumber": "<FBR invoice no>", "note": "..." }` → `SUBMITTED`.
+   - FBR does not have it: `{ "outcome": "NOT_RECEIVED_BY_FBR", "note": "..." }` → `FAILED` (normal resubmit / reset-to-draft is available again).
+3. The decision is stored on the attempt's `FbrSubmission.reconciliation` (outcome, reference, note, who, when); the original response/error fields are kept unchanged.
+
+### Stale `SUBMITTING` recovery
+
+`fbr.recovery.ts` runs at server startup and every `FBR_STALE_CHECK_INTERVAL_MS` (default 60s). An invoice in `SUBMITTING` for longer than `FBR_SUBMITTING_STALE_AFTER_MS` (default 5 min, never less than `FBR_API_TIMEOUT_MS` + 60s) is moved, based only on our own audit records — never by calling FBR:
+- attempt recorded FBR's success → `SUBMITTED` with that reference;
+- no attempt was created for that lock (FBR was never called) → `FAILED`;
+- otherwise → `RECONCILIATION_REQUIRED`, and the attempt gets `errorCode=FBR_OUTCOME_UNKNOWN`.
 
 ## Sandbox test scenarios (FBR's own onboarding requirement)
 

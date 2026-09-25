@@ -2,6 +2,7 @@ import { env } from "../../config/env";
 import { logger } from "../../utils/logger";
 import {
   FbrNotConfiguredError,
+  FbrOutcomeUnknownError,
   FbrRejectedError,
   FbrTimeoutError,
   FbrError,
@@ -69,16 +70,26 @@ export async function submitInvoice(
         httpStatus,
       );
     }
+    // A 5xx does not tell us whether FBR stored the invoice before failing (spec v1.12 §4.1.6
+    // only says "Internal Server Error (Contact Administrator)"), so the outcome is unknown.
     if (httpStatus >= 500) {
-      throw new FbrError(
+      throw new FbrOutcomeUnknownError(
         `FBR internal server error (HTTP ${httpStatus})`,
         "FBR_SERVER_ERROR",
-        true,
         httpStatus,
       );
     }
 
     const validation = body?.validationResponse;
+
+    // A 2xx without a validation result is not a response we can interpret as accept or reject.
+    if (httpStatus >= 200 && httpStatus < 300 && !validation) {
+      throw new FbrOutcomeUnknownError(
+        `FBR returned HTTP ${httpStatus} without a validation result`,
+        "FBR_UNRECOGNIZED_RESPONSE",
+        httpStatus,
+      );
+    }
     const isValid =
       validation?.statusCode === "00" &&
       validation?.status?.toLowerCase() === "valid";
@@ -109,17 +120,18 @@ export async function submitInvoice(
     };
   } catch (err) {
     if (err instanceof FbrError) throw err;
-    if (err instanceof DOMException && err.name === "AbortError") {
+    // Checked by name: fetch's abort error is a DOMException, which may not pass instanceof checks.
+    if ((err as { name?: unknown } | null)?.name === "AbortError") {
       throw new FbrTimeoutError();
     }
     logger.error("Unexpected error calling FBR API", {
       requestId,
       message: err instanceof Error ? err.message : String(err),
     });
-    throw new FbrError(
-      "Unexpected error contacting FBR",
-      "FBR_UNKNOWN_ERROR",
-      true,
+    // Network failure / dropped connection: the request may already have reached FBR.
+    throw new FbrOutcomeUnknownError(
+      "Network error contacting FBR",
+      "FBR_NETWORK_ERROR",
     );
   } finally {
     clearTimeout(timeout);

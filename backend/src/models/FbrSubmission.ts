@@ -17,6 +17,21 @@ const fbrSubmissionSchema = new Schema(
     errorCode: { type: String, default: null },
     errorMessage: { type: String, default: null },
     respondedAt: { type: Date, default: null },
+    // Set when an admin manually resolves an attempt whose FBR outcome was unknown. The
+    // original response/error fields above are left untouched for audit.
+    reconciliation: {
+      type: new Schema(
+        {
+          outcome: { type: String, enum: ["ACCEPTED_BY_FBR", "NOT_RECEIVED_BY_FBR"], required: true },
+          fbrReferenceNumber: { type: String, default: null },
+          note: { type: String, default: "" },
+          reconciledBy: { type: Types.ObjectId, ref: "User", required: true },
+          reconciledAt: { type: Date, required: true },
+        },
+        { _id: false },
+      ),
+      default: null,
+    },
   },
   { timestamps: { createdAt: true, updatedAt: false } },
 );

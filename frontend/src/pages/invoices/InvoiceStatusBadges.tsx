@@ -7,6 +7,7 @@ const statusTone: Record<InvoiceStatus, "gray" | "green" | "yellow" | "red" | "b
   SUBMITTING: "yellow",
   SUBMITTED: "green",
   FAILED: "red",
+  RECONCILIATION_REQUIRED: "yellow",
 };
 
 const fbrStatusTone: Record<FbrInvoiceStatus, "gray" | "green" | "yellow" | "red" | "blue"> = {
@@ -14,6 +15,7 @@ const fbrStatusTone: Record<FbrInvoiceStatus, "gray" | "green" | "yellow" | "red
   PENDING: "yellow",
   SUBMITTED: "green",
   FAILED: "red",
+  UNKNOWN: "yellow",
 };
 
 export function InvoiceStatusBadge({ status }: { status: InvoiceStatus }) {

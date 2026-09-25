@@ -25,9 +25,19 @@ export class FbrNotConfiguredError extends FbrError {
   }
 }
 
-export class FbrTimeoutError extends FbrError {
+// The request may have reached FBR, but we never got a definitive answer (timeout, dropped
+// connection, 5xx, unrecognised 2xx body). FBR may have recorded the invoice, and the DI API
+// (spec v1.12) has no status/lookup endpoint, so this is NEVER treated as a rejection: the
+// invoice moves to RECONCILIATION_REQUIRED and cannot be resubmitted until an admin reconciles it.
+export class FbrOutcomeUnknownError extends FbrError {
+  constructor(message: string, code = "FBR_OUTCOME_UNKNOWN", httpStatus?: number) {
+    super(message, code, false, httpStatus);
+  }
+}
+
+export class FbrTimeoutError extends FbrOutcomeUnknownError {
   constructor() {
-    super("FBR API request timed out", "FBR_TIMEOUT", true);
+    super("FBR API request timed out", "FBR_TIMEOUT");
   }
 }
 

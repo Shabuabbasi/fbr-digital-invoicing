@@ -1,5 +1,11 @@
-export type InvoiceStatus = "DRAFT" | "READY_FOR_SUBMISSION" | "SUBMITTING" | "SUBMITTED" | "FAILED";
-export type FbrInvoiceStatus = "NOT_SUBMITTED" | "PENDING" | "SUBMITTED" | "FAILED";
+export type InvoiceStatus =
+  | "DRAFT"
+  | "READY_FOR_SUBMISSION"
+  | "SUBMITTING"
+  | "SUBMITTED"
+  | "FAILED"
+  | "RECONCILIATION_REQUIRED";
+export type FbrInvoiceStatus = "NOT_SUBMITTED" | "PENDING" | "SUBMITTED" | "FAILED" | "UNKNOWN";
 
 export interface InvoiceItem {
   productId: string;

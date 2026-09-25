@@ -29,6 +29,10 @@ export const env = {
     apiToken: process.env.FBR_API_TOKEN ?? "",
     environment: (process.env.FBR_ENVIRONMENT ?? "SANDBOX") as "SANDBOX" | "PRODUCTION",
     timeoutMs: Number(process.env.FBR_API_TIMEOUT_MS ?? 15000),
+    // An invoice left in SUBMITTING longer than this (e.g. server crashed mid-request) is moved
+    // to RECONCILIATION_REQUIRED — never resubmitted. See fbr.recovery.ts.
+    submittingStaleAfterMs: Number(process.env.FBR_SUBMITTING_STALE_AFTER_MS ?? 5 * 60 * 1000),
+    staleCheckIntervalMs: Number(process.env.FBR_STALE_CHECK_INTERVAL_MS ?? 60 * 1000),
   },
 
   seed: {

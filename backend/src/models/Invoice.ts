@@ -43,17 +43,21 @@ const invoiceSchema = new Schema(
     totalMinor: { type: Number, required: true, min: 0 },
     status: {
       type: String,
-      enum: ["DRAFT", "READY_FOR_SUBMISSION", "SUBMITTING", "SUBMITTED", "FAILED"],
+      // RECONCILIATION_REQUIRED: FBR may or may not have recorded the invoice (timeout, lost
+      // response, stale SUBMITTING). Blocks resubmission until an admin reconciles it.
+      enum: ["DRAFT", "READY_FOR_SUBMISSION", "SUBMITTING", "SUBMITTED", "FAILED", "RECONCILIATION_REQUIRED"],
       default: "DRAFT",
       index: true,
     },
     fbrStatus: {
       type: String,
-      enum: ["NOT_SUBMITTED", "PENDING", "SUBMITTED", "FAILED"],
+      enum: ["NOT_SUBMITTED", "PENDING", "SUBMITTED", "FAILED", "UNKNOWN"],
       default: "NOT_SUBMITTED",
       index: true,
     },
     fbrReferenceNumber: { type: String, default: null },
+    // When the current/last SUBMITTING lock was taken — used to detect stale submissions.
+    fbrSubmissionStartedAt: { type: Date, default: null },
     fbrLastSubmissionId: { type: Types.ObjectId, ref: "FbrSubmission", default: null },
     createdBy: { type: Types.ObjectId, ref: "User", required: true },
   },
